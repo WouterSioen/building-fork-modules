@@ -329,6 +329,24 @@ blockquote p:last-child {
   -o-background-size: 100% 100%;
   background-size: 100% 100%;
 }
+.workflow {
+  background: url(../img/workflow.jpg) no-repeat;
+  -webkit-background-size: cover;
+  -moz-background-size: cover;
+  -o-background-size: cover;
+  background-size: cover;
+}
+.git {
+  background: #205081 url(../img/git.jpg) no-repeat;
+  -webkit-background-size: contain;
+  -moz-background-size: contain;
+  -o-background-size: contain;
+  background-size: contain;
+  -webkit-background-position: center;
+  -moz-background-position: center;
+  -o-background-position: center;
+  background-position: center;
+}
 .questions {
   background: url(../img/questions.jpg) no-repeat;
   -webkit-background-size: 100% 100%;

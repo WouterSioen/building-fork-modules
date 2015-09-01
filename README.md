@@ -1,4 +1,4 @@
-# My presentation boilerplate
+# How I build Fork CMS modules
 
 ---
 
@@ -25,6 +25,30 @@
 ---
 
 ## Topics
+
+* Workflow
+* Goals
+* Autogeneration
+* Code examples
+
+---
+
+## Workflow
+
+---
+
+### Git
+
+???
+
+The most important tool in my flow is git. It's used for:
+
+* Branching
+* Preventing foolish errors (pre-commit, and ability to rollback)
+* Documentation
+* Code reviews
+* Back ups
+* Deployment
 
 ---
 
