@@ -29,6 +29,7 @@ $(document).on('ready', function(){
   $('.remark-slides-area .remark-slide-content:eq(8)').addClass('center middle');
   $('.remark-slides-area .remark-slide-content:eq(10)').addClass('center middle');
 
+  $('.remark-slides-area .remark-slide-content').eq(-4).addClass('center middle');
   $('.remark-slides-area .remark-slide-content').eq(-3).addClass('questions image-replace');
   $('.remark-slides-area .remark-slide-content').eq(-2).addClass('center thanks');
 });

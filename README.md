@@ -666,6 +666,10 @@ I quickly make this class and never touch it again.
 
 ---
 
+## 5. the Index action
+
+---
+
 ```php
 <?php
 
@@ -786,6 +790,235 @@ byte representation of the uuid though.
 
 I just created a small column function that adds the string representation of the
 uuid to the edit url
+
+---
+
+## 6. The Edit action
+
+---
+
+```php
+<?php
+namespace Backend\Modules\Team\Actions;
+
+use Rhumsaa\Uuid\Uuid;
+use Backend\Core\Engine\Model;
+use Backend\Core\Engine\Base\ActionEdit;
+use Backend\Modules\Team\Form\TeamType;
+
+class Edit extends ActionEdit
+{
+    public function execute()
+    {
+        parent::execute();
+
+        try {
+            $id = Uuid::fromString(
+                $this->getParameter('id', 'string')
+            );
+            $teamMember = $this->get('team_repository')->find($id);
+        } catch (\Exception $e) {
+            return $this->redirect(
+                Model::createURLForAction('Index') . '&error=non-existing'
+            );
+        }
+```
+
+???
+
+first step in our edit action is fetching the id parameter from the url. Note
+that it's a string and not an integer like in most modules!
+
+We convert it to a Uuid object and try to find an entity for it.
+
+There are two possible failures here:
+
+* The Uuid is incorrect and can't be created
+* The teamMember isn't found.
+
+Both failures will throw an exception, so we'll return the person to the index
+action again in these cases.
+
+---
+
+```php
+
+        $form = new TeamType('edit', $teamMember);
+        if ($form->handle()) {
+            $teamMember = $form->getData();
+            $this->get('team_repository')->save($teamMember);
+
+            return $this->redirect(
+                Model::createURLForAction('Index') . '&report=edited'
+                . '&highlight=row-' . $teamMember->getId()
+            );
+        }
+
+        $form->parse($this->tpl);
+        $this->tpl->assign('teamMember', $teamMember->toArray());
+        $this->parse();
+        $this->display();
+    }
+}
+```
+
+???
+
+In the second part of our controller, we do approximately the same as in our
+add action, with the difference that we put our TeamMember entity in our form
+now. this way, our data will be filled and our entity will be altered instead of
+created.
+
+---
+
+```php
+public function find(Uuid $id)
+{
+    $teamMember = $this->database->getRecord(
+        'SELECT *
+           FROM team_members
+          WHERE id = :id',
+        [ 'id' => $id->getBytes() ]
+    );
+
+    if (empty($teamMember)) {
+        throw new \Exception(
+            'No teammember with id ' . $id->toString() . 'found'
+        );
+    }
+
+    return TeamMember::fromArray($teamMember);
+}
+```
+
+???
+
+The find method will fetch the record from the database, throw an exception if
+it's not found, and convert our array to a teamMember method using the named
+fromArray constructor. It could also be nice to create a custom NotFoundException.
+
+This way, you can use different error messages for invalid uuid and no result
+found.
+
+---
+
+```php
+public function save(TeamMember $teamMember)
+{
+    // reform objects to a format our db understands
+    $teamMemberArray = $teamMember->toArray();
+    $teamMemberArray['id'] = $teamMemberArray['id']->getBytes();
+    $teamMemberArray['edited_on'] = $teamMemberArray['edited_on']->format('Y-m-d H:i:s');
+    $teamMemberArray['created_on'] = $teamMemberArray['created_on']->format('Y-m-d H:i:s');
+
+    return $this->database->update(
+        'team_members',
+        $teamMemberArray,
+        'id = ?',
+        $teamMemberArray['id']
+    );
+}
+```
+
+???
+
+The update method is almost exactly the same as the add method, but it does an
+update statement instead of an insert statement.
+
+---
+
+## 7. The delete action
+
+---
+
+```php
+<?php
+namespace Backend\Modules\Team\Actions;
+
+use Rhumsaa\Uuid\Uuid;
+use Backend\Core\Engine\Model;
+use Backend\Core\Engine\Base\ActionDelete;
+
+class Delete extends ActionDelete
+{
+    public function execute()
+    {
+        parent::execute();
+
+        try {
+            $id = Uuid::fromString($this->getParameter('id', 'string'));
+            $teamMember = $this->get('team_repository')->find($id);
+        } catch (\Exception $e) {
+            return $this->redirect(
+                Model::createURLForAction('Index') . '&error=non-existing'
+            );
+        }
+
+        $this->get('team_repository')->delete($teamMember);
+
+        return $this->redirect(
+            Model::createURLForAction('Index') . '&report=deleted'
+        );
+    }
+}
+```
+
+???
+
+Only one new method in here: the delete method.
+
+---
+
+```php
+public function delete(TeamMember $teamMember)
+{
+    $this->database->delete(
+        'meta',
+        'id = ?',
+        [ $teamMember->getMetaId() ]
+    );
+
+    $this->database->delete(
+        'team_members',
+        'id = ?',
+        [ $teamMember->getId()->getBytes() ]
+    );
+}
+```
+
+???
+
+The delete method is pretty basic and accepts a TeamMember object and removes
+it from the database and the meta table.
+
+---
+
+## Next steps
+
+* Frontend
+* Event Listeners
+* Adding tests
+
+???
+
+The next step would be to create the frontend for this module.
+
+You could also use events to make the module extensible. Some possible use cases
+could be:
+
+* Adding search indices
+* Coupling the module to the profiles module: so auto generating a profile for
+each team member
+* Sending a notification email when a team member is created
+
+It would also be nice to have tests in place. I already spoke about an
+InMemoryRepository as a potential way to speed up functional tests.
+
+The repository can also be completely tested, because the database can be mocked.
+
+---
+
+<https://github.com/WouterSioen/fork-module-team>
 
 ---
 
