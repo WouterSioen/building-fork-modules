@@ -1032,8 +1032,16 @@ The repository can also be completely tested, because the database can be mocked
 
 ---
 
+<https://joind.in/15170>
+
+![Qr code](img/qr.png)
+
+---
+
 ## Resources
 
 <https://philsturgeon.uk/http/2015/09/03/auto-incrementing-to-destruction/>
+
 <http://ocramius.github.io/blog/when-to-declare-classes-final/>
+
 <http://www.fork-cms.com/blog/detail/module-specific-services>
